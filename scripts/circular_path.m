@@ -27,7 +27,7 @@ for t = 1:iterations
     %% Get recent poses from the Robotarium
     x = r.get_poses();
 
-    %% Run arc differential equation
+    %% Run
     
     % Set linear and angular velocities
     dxu(1) = vB(1);
