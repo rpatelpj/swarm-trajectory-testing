@@ -11,29 +11,25 @@ r = Robotarium('NumberOfRobots', N, 'ShowFigure', true, 'InitialConditions', ini
 % Select the number of iterations for the experiment
 iterations = 500;
 
+% Initialize data container
+dxu = zeros(2, N);
+
 % Set body velocity
 global vB
 vB = [0.15; pi./4];
 
-% Plot position map
+% Plot trajectory
 [~, x] = ode45(@pathdiffeq, [0:r.time_step:r.time_step*iterations], initial_position);
 hold on; plot(x(:,1), x(:,2));
 
-% Initialize data container
-dxu = zeros(2, N);
-
 %% Run
 for t = 1:iterations
-    %% Get recent poses from the Robotarium
+    % Get recent poses from the Robotarium
     x = r.get_poses();
 
-    %% Run
-    
-    % Set linear and angular velocities
+    % Define linear and angular velocities
     dxu(1) = vB(1);
     dxu(2) = vB(2);
-
-    %% Send velocities to agents
 
     % Set velocities of agents 1,...,N
     r.set_velocities(1:N, dxu);
