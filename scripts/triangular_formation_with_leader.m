@@ -1,4 +1,4 @@
-%% Triangular Formation
+%% Triangular Formation with Leader
 clear; close all; clc;
 
 %% Setup
@@ -52,20 +52,9 @@ for t = 1:iterations
     % Get initial location data for while loop condition
     x = r.get_poses();
     r.step();
-    
-    % Compute corner positions
-    theta = (t/iterations).*2.*pi;
-    % xp = 0.5.*cos(theta) + dx;
-    % yp = 0.5.*sin(theta) + dy;
-    % gTTn = [cos(theta), -sin(theta), xp;
-    %         sin(theta),  cos(theta), yp;
-    %                  0,           0,  1];
-    % gATn = gTTn*gAT; dATn = gATn(1:2, 3);                       
-    % gBTn = gTTn*gBT; dBTn = gBTn(1:2, 3);
-    % gCTn = gTTn*gCT; dCTn = gCTn(1:2, 3);
-    % tri.Vertices = [dATn, dBTn, dCTn]';
 
     % Compute corner velocities
+    theta = (t/iterations).*2.*pi;
     thetadot = 2.*pi/iterations;
     xdot = -0.5.*thetadot.*sin(theta);
     ydot = 0.5.*thetadot.*cos(theta);
@@ -73,19 +62,19 @@ for t = 1:iterations
              cos(theta), -sin(theta)];
     gTTndot = [rdot.*thetadot, [xdot; ydot];
                          0, 0,            0];
-    gATndot = gTTndot*gAT; vA = gATndot(1:2, 3)
-    gBTndot = gTTndot*gBT; vB = gBTndot(1:2, 3);
-    gCTndot = gTTndot*gCT; vC = gCTndot(1:2, 3);
+    gATndot = gTTndot*gAT; vA = gATndot(1:2, 3);
+    vB = -(norm(x(1:2, 1) - x(1:2, 2)).^2 - 0.4.^2).*(x(1:2, 2) - x(1:2, 1)) ...
+         -(norm(x(1:2, 3) - x(1:2, 2)).^2 - 0.4.^2).*(x(1:2, 2) - x(1:2, 3));
+    vC = -(norm(x(1:2, 1) - x(1:2, 3)).^2 - 0.4.^2).*(x(1:2, 3) - x(1:2, 1)) ...
+         -(norm(x(1:2, 2) - x(1:2, 3)).^2 - 0.4.^2).*(x(1:2, 3) - x(1:2, 2));
     A_sum = A_sum + vA;
-    B_sum = B_sum + vB;
-    C_sum = C_sum + vC;
 
     % Update triangle visual
     tri.Vertices(1, :) = tri.Vertices(1, :) + vA';
     tri.Vertices(2, :) = tri.Vertices(2, :) + vB';
     tri.Vertices(3, :) = tri.Vertices(3, :) + vC';
 
-    while(~init_checker(x, [A_sum, B_sum, C_sum; [x(3, 1), x(3, 2), x(3, 3)]]))
+    while(~init_checker(x, [A_sum, x(1:2, 2), x(1:2, 3); [x(3, 1), x(3, 2), x(3, 3)]]))
         % Get recent poses from the Robotarium
         x = r.get_poses();
 
