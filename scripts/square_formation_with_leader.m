@@ -5,9 +5,9 @@ clear; close all; clc;
 
 % Initialize Robotarium object
 N = 4;
-initial_position = [  0.3,   0.7,   0.7,   0.3;
-                      0.2,   0.2,  -0.2,  -0.2;
-                    pi./2, pi./2, pi./2, pi./2];
+initial_position = [         0.5, 0.5+0.2.*sqrt(2),           0.5, 0.5-0.2.*sqrt(2);
+                    0.2.*sqrt(2),                0, -0.2.*sqrt(2),                0;
+                           pi./2,            pi./2,         pi./2,            pi./2];
 dx = -0.6; dy = -0.2; % Distance from origin
 initial_position(1, :) = initial_position(1, :) + dx;
 initial_position(2, :) = initial_position(2, :) + dy;
@@ -26,8 +26,8 @@ init_checker = create_is_initialized();
 si_to_uni_dynamics = create_si_to_uni_dynamics();
 
 % Define leader of rigid body
-gAS = [1, 0, -0.2;
-       0, 1, 0.2;
+gAS = [1, 0, 0;
+       0, 1, 0.2.*sqrt(2);
        0, 0, 1];
 
 % Draw square visual
