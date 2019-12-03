@@ -1,13 +1,13 @@
-%% Triangular Formation with Leader
+%% Square Formation with Leader
 clear; close all; clc;
 
 %% Setup
 
 % Initialize Robotarium object
-N = 3;
-initial_position = [   0.5,     0.7,     0.3;
-                    0.1732, -0.1732, -0.1732;
-                     pi./2,   pi./2,   pi./2];
+N = 4;
+initial_position = [  0.3,   0.7,   0.7,   0.3;
+                      0.2,   0.2,  -0.2,  -0.2;
+                    pi./2, pi./2, pi./2, pi./2];
 dx = -0.6; dy = -0.2; % Distance from origin
 initial_position(1, :) = initial_position(1, :) + dx;
 initial_position(2, :) = initial_position(2, :) + dy;
@@ -26,12 +26,12 @@ init_checker = create_is_initialized();
 si_to_uni_dynamics = create_si_to_uni_dynamics();
 
 % Define leader of rigid body
-gAT = [1, 0, 0;
-       0, 1, 0.1737;
+gAS = [1, 0, -0.2;
+       0, 1, 0.2;
        0, 0, 1];
 
-% Draw triangle visual
-hold on; tri = patch(initial_position(1, :), initial_position(2, :), 'y');
+% Draw square visual
+hold on; squ = patch(initial_position(1, :), initial_position(2, :), 'y');
 
 % Plot trajectory
 theta = linspace(0, 2.*pi, iterations);
@@ -52,26 +52,32 @@ for t = 1:iterations
     ydot = 0.5.*thetadot.*cos(theta);
     rdot = [-sin(theta), -cos(theta);
              cos(theta), -sin(theta)];
-    gTTndot = [rdot.*thetadot, [xdot; ydot];
+    gSSndot = [rdot.*thetadot, [xdot; ydot];
                          0, 0,            0];
-    gATndot = gTTndot*gAT; vA = gATndot(1:2, 3);
+    gASndot = gSSndot*gAS; vA = gASndot(1:2, 3);
     vB = -(norm(x(1:2, 1) - x(1:2, 2)).^2 - 0.4.^2).*(x(1:2, 2) - x(1:2, 1)) ...
-         -(norm(x(1:2, 3) - x(1:2, 2)).^2 - 0.4.^2).*(x(1:2, 2) - x(1:2, 3));
+         -(norm(x(1:2, 3) - x(1:2, 2)).^2 - 0.4.^2).*(x(1:2, 2) - x(1:2, 3)) ...
+         -(norm(x(1:2, 4) - x(1:2, 2)).^2 - 0.4.^2).*(x(1:2, 2) - x(1:2, 4));
     vC = -(norm(x(1:2, 1) - x(1:2, 3)).^2 - 0.4.^2).*(x(1:2, 3) - x(1:2, 1)) ...
-         -(norm(x(1:2, 2) - x(1:2, 3)).^2 - 0.4.^2).*(x(1:2, 3) - x(1:2, 2));
+         -(norm(x(1:2, 2) - x(1:2, 3)).^2 - 0.4.^2).*(x(1:2, 3) - x(1:2, 2)) ...
+         -(norm(x(1:2, 4) - x(1:2, 3)).^2 - 0.4.^2).*(x(1:2, 3) - x(1:2, 4));
+    vD = -(norm(x(1:2, 1) - x(1:2, 4)).^2 - 0.4.^2).*(x(1:2, 4) - x(1:2, 1)) ...
+         -(norm(x(1:2, 2) - x(1:2, 4)).^2 - 0.4.^2).*(x(1:2, 4) - x(1:2, 2)) ...
+         -(norm(x(1:2, 3) - x(1:2, 4)).^2 - 0.4.^2).*(x(1:2, 4) - x(1:2, 3));
     A_sum = A_sum + vA;
 
-    % Update triangle visual
-    tri.Vertices(1, :) = tri.Vertices(1, :) + vA';
-    tri.Vertices(2, :) = tri.Vertices(2, :) + vB';
-    tri.Vertices(3, :) = tri.Vertices(3, :) + vC';
+    % Update square visual
+    squ.Vertices(1, :) = squ.Vertices(1, :) + vA';
+    squ.Vertices(2, :) = squ.Vertices(2, :) + vB';
+    squ.Vertices(3, :) = squ.Vertices(3, :) + vC';
+    squ.Vertices(4, :) = squ.Vertices(4, :) + vD';
 
-    while(~init_checker(x, [A_sum, x(1:2, 2), x(1:2, 3); [x(3, 1), x(3, 2), x(3, 3)]]))
+    while(~init_checker(x, [A_sum, x(1:2, 2), x(1:2, 3), x(1:2, 4); [x(3, 1), x(3, 2), x(3, 3), x(3, 4)]]))
         % Get recent poses from the Robotarium
         x = r.get_poses();
 
         % Set velocities of agents 1,...,N
-        dxu = si_to_uni_dynamics([vA, vB, vC], x);
+        dxu = si_to_uni_dynamics([vA, vB, vC, vD], x);
         r.set_velocities(1:N, dxu);
 
         % Send the previously set velocities to the agents
